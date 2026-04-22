@@ -47,4 +47,4 @@ jobs:
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: python Danger.py
+        run: python Danger.pyhjkkkkk
