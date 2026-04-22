@@ -1,0 +1,50 @@
+name: Run Telegram Bot
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */5 * * *'
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 🔥 Install clang (for building binary)
+      - name: Install clang
+        run: sudo apt update && sudo apt install -y clang upx
+
+      # 🔥 Build bgmi binary (IMPORTANT)
+      - name: Build bgmi binary
+        run: |
+          clang -Os -s -ffunction-sections -fdata-sections bgmi.c -o bgmi -Wl,--gc-sections
+          strip bgmi
+          upx --best --lzma bgmi || true
+
+      # 🔥 Make executable
+      - name: Make bgmi executable
+        run: chmod +x bgmi
+
+      # 🔥 Setup Python
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 🔥 Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyTelegramBotAPI pymongo requests certifi aiohttp pytz psutil
+
+      # 🔥 Run bot
+      - name: Run bot
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: python Danger.py
